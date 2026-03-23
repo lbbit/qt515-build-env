@@ -22,6 +22,22 @@ if [[ ! -d "${QT_SRC_DIR}" ]]; then
   tar -xf "${QT_ARCHIVE}"
 fi
 
+python3 - <<'PY'
+from pathlib import Path
+files = [
+    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qfloat16.h"),
+    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qendian.h"),
+]
+for path in files:
+    text = path.read_text()
+    if '#include <limits>' not in text:
+        if '#include <type_traits>' in text:
+            text = text.replace('#include <type_traits>', '#include <type_traits>\n#include <limits>', 1)
+        elif '#include <QtCore/qglobal.h>' in text:
+            text = text.replace('#include <QtCore/qglobal.h>', '#include <QtCore/qglobal.h>\n#include <limits>', 1)
+        path.write_text(text)
+PY
+
 prepare_system_host_qt() {
   mkdir -p "${QT_HOST_DIR}/bin"
   ln -sf /usr/lib/qt5/bin/qmake "${QT_HOST_DIR}/bin/qmake"
