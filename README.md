@@ -18,7 +18,7 @@
 
 ## 容器内容
 
-容器里会准备：
+最终发布到 GHCR 的镜像中会直接准备好：
 
 - Qt host 工具链：`/opt/Qt5.15/5.15.2/gcc_64`
 - Qt aarch64 工具链：`/opt/Qt5.15/5.15.2/aarch64`
@@ -27,6 +27,8 @@
   - `aarch64-linux-gnu-g++`
   - `arm-linux-gnueabihf-g++`
 - 常见打包工具：`zip` / `patchelf`
+
+也就是说，使用者拉下镜像后，不需要再在自己项目的 CI 中现场编 Qt。
 
 ## GHCR 镜像名
 
