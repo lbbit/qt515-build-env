@@ -17,6 +17,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Cache Qt source archive
+        id: cache-qt-src
+        uses: actions/cache@v4
+        with:
+          path: qt-everywhere-src-5.15.2.tar.xz
+          key: qt-src-5.15.2
+
+      - name: Download Qt source archive
+        if: steps.cache-qt-src.outputs.cache-hit != 'true'
+        run: |
+          wget -O qt-everywhere-src-5.15.2.tar.xz \
+            https://download.qt.io/archive/qt/5.15/5.15.2/single/qt-everywhere-src-5.15.2.tar.xz
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 

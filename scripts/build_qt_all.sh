@@ -15,7 +15,8 @@ mkdir -p "${QT_ROOT}" "${QT_SRC_PARENT}"
 cd "${QT_SRC_PARENT}"
 
 if [[ ! -f "${QT_ARCHIVE}" ]]; then
-  wget -O "${QT_ARCHIVE}" "${QT_URL}"
+  echo "Missing source archive: ${QT_ARCHIVE}" >&2
+  exit 2
 fi
 if [[ ! -d "${QT_SRC_DIR}" ]]; then
   tar -xf "${QT_ARCHIVE}"

@@ -65,6 +65,7 @@ RUN apt-get update && apt-get install -y \
     libxcb-util-dev \
   && rm -rf /var/lib/apt/lists/*
 
+COPY qt-everywhere-src-5.15.2.tar.xz /opt/src/qt-everywhere-src-5.15.2.tar.xz
 COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
 RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /usr/local/bin/build_qt_all.sh || { \
