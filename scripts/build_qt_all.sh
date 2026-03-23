@@ -27,6 +27,7 @@ from pathlib import Path
 files = [
     Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qfloat16.h"),
     Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qendian.h"),
+    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/text/qbytearraymatcher.h"),
 ]
 for path in files:
     text = path.read_text()
@@ -35,6 +36,8 @@ for path in files:
             text = text.replace('#include <type_traits>', '#include <type_traits>\n#include <limits>', 1)
         elif '#include <QtCore/qglobal.h>' in text:
             text = text.replace('#include <QtCore/qglobal.h>', '#include <QtCore/qglobal.h>\n#include <limits>', 1)
+        elif '#include <QtCore/qbytearray.h>' in text:
+            text = text.replace('#include <QtCore/qbytearray.h>', '#include <QtCore/qbytearray.h>\n#include <limits>', 1)
         path.write_text(text)
 PY
 
