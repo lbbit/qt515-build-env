@@ -68,8 +68,13 @@ RUN apt-get update && apt-get install -y \
 COPY qt-everywhere-src-5.15.2.tar.xz /opt/src/qt-everywhere-src-5.15.2.tar.xz
 COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
 RUN chmod +x /usr/local/bin/build_qt_all.sh \
-    && /usr/local/bin/build_qt_all.sh || { \
-      echo '===== build_qt_all.sh failed; dumping partial logs if present ====='; \
+    && /usr/local/bin/build_qt_all.sh \
+    && echo '===== verify installed Qt toolchain =====' \
+    && find /opt/Qt5.15 -maxdepth 5 -name qmake -type f | sort \
+    && test -x /opt/Qt5.15/5.15.2/aarch64/bin/qmake \
+    && /opt/Qt5.15/5.15.2/aarch64/bin/qmake -v \
+    || { \
+      echo '===== build_qt_all.sh failed or installed toolchain missing; dumping partial logs if present ====='; \
       find /opt/src -maxdepth 5 \( -name config.log -o -name config.summary -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 400; \
       if [ -f /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.summary ]; then \
         echo '===== build-aarch64/config.summary ====='; \
@@ -80,6 +85,7 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
         cat /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.log; \
       fi; \
       find /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.tests -maxdepth 4 -type f \( -name Makefile -o -name '*.log' -o -name '*.txt' -o -name '*.out' -o -name '*.err' \) -print -exec sh -c 'echo "===== {} ====="; sed -n "1,220p" "{}"' \; 2>/dev/null || true; \
+      find /opt/Qt5.15 -maxdepth 6 -type f | sort | head -n 400 || true; \
       exit 1; \
     }
 
