@@ -66,7 +66,40 @@ if [[ ! -x "${QT_AARCH64_DIR}/bin/qmake" ]]; then
     -xplatform linux-aarch64-gnu-g++ \
     -device-option CROSS_COMPILE=aarch64-linux-gnu- \
     -sysroot / \
-    -skip qtwebengine
+    -skip qtwebengine \
+    -skip qt3d \
+    -skip qtquick3d \
+    -skip qtmultimedia \
+    -skip qtwayland \
+    -skip qtlocation \
+    -skip qtsensors \
+    -skip qtserialport \
+    -skip qtconnectivity \
+    -skip qtremoteobjects \
+    -skip qtwebchannel \
+    -skip qtwebsockets \
+    -skip qtscxml \
+    -skip qtdoc \
+    -skip qttranslations \
+    -skip qttools \
+    -skip qtdeclarative \
+    -skip qtgamepad \
+    -skip qtlottie \
+    -skip qtspeech \
+    -skip qtvirtualkeyboard \
+    -skip qtcharts \
+    -skip qtactiveqt \
+    -skip qtmacextras \
+    -skip qtx11extras \
+    -skip qtwinextras \
+    -no-openssl \
+    -no-dbus \
+    -no-sql-sqlite \
+    -no-feature-xcb \
+    -no-feature-xlib \
+    -no-feature-xkbcommon \
+    -no-feature-vulkan \
+    -linuxfb
   make -j"$(nproc)"
   make install
   cd ..

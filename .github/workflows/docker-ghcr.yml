@@ -51,11 +51,21 @@ jobs:
             type=ref,event=tag
             type=sha
 
-      - name: Build and push image
-        uses: docker/build-push-action@v6
+      - name: Build and push image with log capture
+        shell: bash
+        run: |
+          set -o pipefail
+          docker buildx build \
+            --progress=plain \
+            --push \
+            -f Dockerfile \
+            -t ghcr.io/lbbit/qt515-build-env:latest \
+            -t ghcr.io/lbbit/qt515-build-env:${GITHUB_SHA} \
+            . 2>&1 | tee docker-build.log
+
+      - name: Upload docker build log
+        if: always()
+        uses: actions/upload-artifact@v4
         with:
-          context: .
-          file: ./Dockerfile
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
+          name: docker-build-log
+          path: docker-build.log
