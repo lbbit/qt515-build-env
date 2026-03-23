@@ -66,7 +66,12 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
-RUN chmod +x /usr/local/bin/build_qt_all.sh && /usr/local/bin/build_qt_all.sh
+RUN chmod +x /usr/local/bin/build_qt_all.sh \
+    && /usr/local/bin/build_qt_all.sh || { \
+      echo '===== build_qt_all.sh failed; dumping partial logs if present ====='; \
+      find /opt/src -maxdepth 4 \( -name config.log -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 200; \
+      exit 1; \
+    }
 
 ENV PATH=${QT_HOST_DIR}/bin:${QT_AARCH64_DIR}/bin:${QT_ARMV7_DIR}/bin:$PATH
 
