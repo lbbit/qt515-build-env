@@ -64,7 +64,7 @@ if [[ ! -x "${QT_AARCH64_DIR}/bin/qmake" ]]; then
     -platform linux-g++ \
     -xplatform linux-aarch64-gnu-g++ \
     -device-option CROSS_COMPILE=aarch64-linux-gnu- \
-    -sysroot /usr/aarch64-linux-gnu \
+    -sysroot / \
     -skip qtwebengine
   make -j"$(nproc)"
   make install

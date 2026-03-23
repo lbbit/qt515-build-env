@@ -70,9 +70,13 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /usr/local/bin/build_qt_all.sh || { \
       echo '===== build_qt_all.sh failed; dumping partial logs if present ====='; \
       find /opt/src -maxdepth 4 \( -name config.log -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 200; \
+      if [ -f /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.log ]; then \
+        echo '===== build-aarch64/config.log ====='; \
+        cat /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.log; \
+      fi; \
       exit 1; \
     }
 
-ENV PATH=${QT_HOST_DIR}/bin:${QT_AARCH64_DIR}/bin:${QT_ARMV7_DIR}/bin:$PATH
+ENV PATH=${QT_HOST_DIR}/bin:${QT_AARCH64_DIR}/bin:$PATH
 
 WORKDIR /workspace
