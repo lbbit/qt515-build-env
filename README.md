@@ -20,9 +20,16 @@
 最终发布到 GHCR 的镜像中会准备：
 
 - host Qt 工具：`/opt/Qt5.15/5.15.2/gcc_64/bin`
-- aarch64 Qt 工具链：`/opt/Qt5.15/5.15.2/aarch64`
+- aarch64 Qt target SDK：`/opt/Qt5.15/5.15.2/aarch64`
 - 交叉编译器：`aarch64-linux-gnu-g++`
+- cross mkspec：`linux-aarch64-gnu-g++`
 - 常见工具：`zip` / `patchelf`
+
+这个镜像的正确使用方式是：
+
+- 用 **host qmake** 生成 Makefile
+- 用 **aarch64 mkspec** 和交叉编译器完成 ARM64 构建
+- 使用 `/opt/Qt5.15/5.15.2/aarch64` 下的头文件和库作为 target SDK
 
 ## 当前模块范围
 
@@ -68,7 +75,18 @@ docker run --rm -it \
   -v "$PWD":/workspace \
   -w /workspace \
   ghcr.io/lbbit/qt515-build-env:latest \
-  bash -lc '/opt/Qt5.15/5.15.2/aarch64/bin/qmake your-project.pro && make -j$(nproc)'
+  bash -lc '
+    /opt/Qt5.15/5.15.2/gcc_64/bin/qmake -spec linux-aarch64-gnu-g++ \
+      QMAKE_CC=aarch64-linux-gnu-gcc \
+      QMAKE_CXX=aarch64-linux-gnu-g++ \
+      QMAKE_LINK=aarch64-linux-gnu-g++ \
+      QMAKE_STRIP=aarch64-linux-gnu-strip \
+      QMAKE_CFLAGS+="--sysroot=/" \
+      QMAKE_CXXFLAGS+="--sysroot=/" \
+      QMAKE_LFLAGS+="--sysroot=/" \
+      your-project.pro &&
+    make -j$(nproc)
+  '
 ```
 
 ### 3. 推荐 build 目录方式
@@ -80,20 +98,34 @@ docker run --rm -it \
   ghcr.io/lbbit/qt515-build-env:latest \
   bash -lc '
     mkdir -p build-aarch64 && cd build-aarch64 &&
-    /opt/Qt5.15/5.15.2/aarch64/bin/qmake ../your-project.pro &&
+    /opt/Qt5.15/5.15.2/gcc_64/bin/qmake -spec linux-aarch64-gnu-g++ \
+      QMAKE_CC=aarch64-linux-gnu-gcc \
+      QMAKE_CXX=aarch64-linux-gnu-g++ \
+      QMAKE_LINK=aarch64-linux-gnu-g++ \
+      QMAKE_STRIP=aarch64-linux-gnu-strip \
+      QMAKE_CFLAGS+="--sysroot=/" \
+      QMAKE_CXXFLAGS+="--sysroot=/" \
+      QMAKE_LFLAGS+="--sysroot=/" \
+      ../your-project.pro &&
     make -j$(nproc)
   '
 ```
 
-## 关于 QMake 工程的注意点
-
-- 直接调用目标架构 Qt 安装目录下的 `qmake`
-- 不要混用系统 `qmake` 和 aarch64 mkspec
-- 最稳的方式就是：
+### 4. 验证容器是否完整
 
 ```bash
-/opt/Qt5.15/5.15.2/aarch64/bin/qmake your-project.pro
+test -x /opt/Qt5.15/5.15.2/gcc_64/bin/qmake
+test -d /opt/Qt5.15/5.15.2/aarch64/include
+test -d /opt/Qt5.15/5.15.2/aarch64/lib
+test -d /opt/Qt5.15/5.15.2/gcc_64/mkspecs/linux-aarch64-gnu-g++ || test -d /usr/lib/qt5/mkspecs/linux-aarch64-gnu-g++
 ```
+
+## 关于 QMake 工程的注意点
+
+- 这个容器的推荐入口是 **host qmake**，不是 `aarch64/bin/qmake`
+- 交叉构建时显式指定 `-spec linux-aarch64-gnu-g++`
+- 不要混用系统默认 `qmake` 和未声明的 target mkspec
+- target 侧的 Qt 资产主要位于 `/opt/Qt5.15/5.15.2/aarch64`
 
 ## GHCR 自动构建
 

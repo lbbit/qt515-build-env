@@ -52,7 +52,7 @@ prepare_system_host_qt() {
 prepare_system_host_qt
 cd "${QT_SRC_DIR}"
 
-if [[ ! -x "${QT_AARCH64_DIR}/bin/qmake" ]]; then
+if [[ ! -d "${QT_AARCH64_DIR}/include" || ! -d "${QT_AARCH64_DIR}/lib" ]]; then
   mkdir -p build-aarch64 && cd build-aarch64
   export CFLAGS="${CFLAGS:-} -O2"
   export CXXFLAGS="${CXXFLAGS:-} -O2 -std=gnu++11"

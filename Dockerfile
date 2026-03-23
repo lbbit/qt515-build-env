@@ -69,12 +69,15 @@ COPY qt-everywhere-src-5.15.2.tar.xz /opt/src/qt-everywhere-src-5.15.2.tar.xz
 COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
 RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /usr/local/bin/build_qt_all.sh \
-    && echo '===== verify installed Qt toolchain =====' \
+    && echo '===== verify installed Qt cross SDK =====' \
     && find /opt/Qt5.15 -maxdepth 5 -name qmake -type f | sort \
-    && test -x /opt/Qt5.15/5.15.2/aarch64/bin/qmake \
-    && /opt/Qt5.15/5.15.2/aarch64/bin/qmake -v \
+    && test -x /opt/Qt5.15/5.15.2/gcc_64/bin/qmake \
+    && /opt/Qt5.15/5.15.2/gcc_64/bin/qmake -v \
+    && test -d /opt/Qt5.15/5.15.2/aarch64/include \
+    && test -d /opt/Qt5.15/5.15.2/aarch64/lib \
+    && (test -d /opt/Qt5.15/5.15.2/gcc_64/mkspecs/linux-aarch64-gnu-g++ || test -d /usr/lib/qt5/mkspecs/linux-aarch64-gnu-g++) \
     || { \
-      echo '===== build_qt_all.sh failed or installed toolchain missing; dumping partial logs if present ====='; \
+      echo '===== build_qt_all.sh failed or installed cross SDK missing; dumping partial logs if present ====='; \
       find /opt/src -maxdepth 5 \( -name config.log -o -name config.summary -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 400; \
       if [ -f /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.summary ]; then \
         echo '===== build-aarch64/config.summary ====='; \
