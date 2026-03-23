@@ -69,11 +69,16 @@ COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
 RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /usr/local/bin/build_qt_all.sh || { \
       echo '===== build_qt_all.sh failed; dumping partial logs if present ====='; \
-      find /opt/src -maxdepth 4 \( -name config.log -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 200; \
+      find /opt/src -maxdepth 5 \( -name config.log -o -name config.summary -o -name '*.log' -o -name '*.txt' \) -type f -print | head -n 400; \
+      if [ -f /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.summary ]; then \
+        echo '===== build-aarch64/config.summary ====='; \
+        cat /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.summary; \
+      fi; \
       if [ -f /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.log ]; then \
         echo '===== build-aarch64/config.log ====='; \
         cat /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.log; \
       fi; \
+      find /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.tests -maxdepth 4 -type f \( -name Makefile -o -name '*.log' -o -name '*.txt' -o -name '*.out' -o -name '*.err' \) -print -exec sh -c 'echo "===== {} ====="; sed -n "1,220p" "{}"' \; 2>/dev/null || true; \
       exit 1; \
     }
 
