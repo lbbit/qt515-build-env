@@ -97,6 +97,8 @@ if [[ ! -x "${QT_AARCH64_DIR}/bin/qmake" ]]; then
     -no-feature-xlib \
     -no-feature-xkbcommon \
     -no-feature-vulkan \
+    -no-opengl \
+    -no-eglfs \
     -linuxfb
   make -j"$(nproc)"
   make install

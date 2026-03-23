@@ -24,7 +24,30 @@
 - 交叉编译器：`aarch64-linux-gnu-g++`
 - 常见工具：`zip` / `patchelf`
 
-## GHCR 镜像名
+## 当前模块范围
+
+当前优先保证以下能力可用于 aarch64 QMake 工程：
+
+- Qt Core
+- Qt Gui
+- Qt Widgets
+- Qt Network
+- Qt Test
+- Qt SerialPort
+- Qt Translations
+
+### 关于 MQTT
+
+MQTT 在 Qt 5.15 体系里通常来自 **`qtmqtt` 模块**，它不是 `qtbase` 自带的一部分。
+
+因此当前仓库先优先打通：
+
+- Qt 5.15 aarch64 基础交叉编译环境
+- `qtserialport`
+- `qttranslations`
+
+等基础环境稳定后，再继续把 `qtmqtt` 加进容器。
+
 
 ```text
 ghcr.io/lbbit/qt515-build-env:latest
