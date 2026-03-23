@@ -6,7 +6,6 @@ QT_VERSION="${QT_VERSION:-5.15.2}"
 QT_ROOT="/opt/Qt${QT_MAIN_VERSION}/${QT_VERSION}"
 QT_HOST_DIR="${QT_ROOT}/gcc_64"
 QT_AARCH64_DIR="${QT_ROOT}/aarch64"
-QT_ARMV7_DIR="${QT_ROOT}/armv7"
 QT_SRC_PARENT="/opt/src"
 QT_SRC_DIR="${QT_SRC_PARENT}/qt-everywhere-src-${QT_VERSION}"
 QT_ARCHIVE="qt-everywhere-src-${QT_VERSION}.tar.xz"
@@ -65,26 +64,8 @@ if [[ ! -x "${QT_AARCH64_DIR}/bin/qmake" ]]; then
     -platform linux-g++ \
     -xplatform linux-aarch64-gnu-g++ \
     -device-option CROSS_COMPILE=aarch64-linux-gnu- \
-    -sysroot /usr/aarch64-linux-gnu
-  make -j"$(nproc)"
-  make install
-  cd ..
-fi
-
-if [[ ! -x "${QT_ARMV7_DIR}/bin/qmake" ]]; then
-  mkdir -p build-armv7 && cd build-armv7
-  export CFLAGS="${CFLAGS:-} -O2"
-  export CXXFLAGS="${CXXFLAGS:-} -O2 -std=gnu++11"
-  ../configure \
-    -prefix "${QT_ARMV7_DIR}" \
-    -hostprefix "${QT_HOST_DIR}" \
-    -extprefix "${QT_ARMV7_DIR}" \
-    -opensource -confirm-license -release \
-    -nomake examples -nomake tests \
-    -platform linux-g++ \
-    -xplatform linux-arm-gnueabi-g++ \
-    -device-option CROSS_COMPILE=arm-linux-gnueabihf- \
-    -sysroot /usr/arm-linux-gnueabihf
+    -sysroot /usr/aarch64-linux-gnu \
+    -skip qtwebengine
   make -j"$(nproc)"
   make install
   cd ..
