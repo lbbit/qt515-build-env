@@ -9,7 +9,9 @@ QT_AARCH64_DIR="${QT_ROOT}/aarch64"
 QT_SRC_PARENT="/opt/src"
 QT_SRC_DIR="${QT_SRC_PARENT}/qt-everywhere-src-${QT_VERSION}"
 QT_ARCHIVE="qt-everywhere-src-${QT_VERSION}.tar.xz"
-QT_URL="https://download.qt.io/archive/qt/${QT_MAIN_VERSION}/${QT_VERSION}/single/${QT_ARCHIVE}"
+QTMQTT_VERSION="${QTMQTT_VERSION:-v${QT_VERSION}}"
+QTMQTT_ARCHIVE="qtmqtt-${QTMQTT_VERSION}.tar.gz"
+QTMQTT_SRC_DIR="${QT_SRC_PARENT}/qtmqtt-${QTMQTT_VERSION}"
 
 mkdir -p "${QT_ROOT}" "${QT_SRC_PARENT}"
 cd "${QT_SRC_PARENT}"
@@ -21,13 +23,20 @@ fi
 if [[ ! -d "${QT_SRC_DIR}" ]]; then
   tar -xf "${QT_ARCHIVE}"
 fi
+if [[ ! -f "${QTMQTT_ARCHIVE}" ]]; then
+  echo "Missing qtmqtt source archive: ${QTMQTT_ARCHIVE}" >&2
+  exit 2
+fi
+if [[ ! -d "${QTMQTT_SRC_DIR}" ]]; then
+  tar -xf "${QTMQTT_ARCHIVE}"
+fi
 
 python3 - <<'PY'
 from pathlib import Path
 files = [
-    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qfloat16.h"),
-    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qendian.h"),
-    Path("/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/text/qbytearraymatcher.h"),
+    Path('/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qfloat16.h'),
+    Path('/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/global/qendian.h'),
+    Path('/opt/src/qt-everywhere-src-5.15.2/qtbase/src/corelib/text/qbytearraymatcher.h'),
 ]
 for path in files:
     text = path.read_text()
@@ -49,58 +58,127 @@ prepare_system_host_qt() {
   ln -sf /usr/lib/qt5/bin/rcc "${QT_HOST_DIR}/bin/rcc"
 }
 
-prepare_system_host_qt
-cd "${QT_SRC_DIR}"
+build_qtbase_stack() {
+  cd "${QT_SRC_DIR}"
+  if [[ ! -d "${QT_AARCH64_DIR}/include" || ! -d "${QT_AARCH64_DIR}/lib" ]]; then
+    mkdir -p build-aarch64 && cd build-aarch64
+    export CFLAGS="${CFLAGS:-} -O2"
+    export CXXFLAGS="${CXXFLAGS:-} -O2 -std=gnu++11"
+    ../configure \
+      -prefix "${QT_AARCH64_DIR}" \
+      -hostprefix "${QT_HOST_DIR}" \
+      -extprefix "${QT_AARCH64_DIR}" \
+      -opensource -confirm-license -release \
+      -nomake examples -nomake tests \
+      -platform linux-g++ \
+      -xplatform linux-aarch64-gnu-g++ \
+      -device-option CROSS_COMPILE=aarch64-linux-gnu- \
+      -sysroot / \
+      -skip qtwebengine \
+      -skip qt3d \
+      -skip qtquick3d \
+      -skip qtmultimedia \
+      -skip qtwayland \
+      -skip qtlocation \
+      -skip qtsensors \
+      -skip qtconnectivity \
+      -skip qtremoteobjects \
+      -skip qtwebchannel \
+      -skip qtwebsockets \
+      -skip qtscxml \
+      -skip qtdoc \
+      -skip qttools \
+      -skip qtdeclarative \
+      -skip qtgamepad \
+      -skip qtlottie \
+      -skip qtspeech \
+      -skip qtvirtualkeyboard \
+      -skip qtcharts \
+      -skip qtactiveqt \
+      -skip qtmacextras \
+      -skip qtx11extras \
+      -skip qtwinextras \
+      -skip qtpurchasing \
+      -no-openssl \
+      -no-dbus \
+      -no-sql-sqlite \
+      -no-feature-xcb \
+      -no-feature-xlib \
+      -no-feature-xkbcommon \
+      -no-feature-vulkan \
+      -no-opengl \
+      -no-eglfs \
+      -linuxfb
+    make -j"$(nproc)"
+    make install
+    cd ..
+  fi
+}
 
-if [[ ! -d "${QT_AARCH64_DIR}/include" || ! -d "${QT_AARCH64_DIR}/lib" ]]; then
-  mkdir -p build-aarch64 && cd build-aarch64
-  export CFLAGS="${CFLAGS:-} -O2"
-  export CXXFLAGS="${CXXFLAGS:-} -O2 -std=gnu++11"
-  ../configure \
-    -prefix "${QT_AARCH64_DIR}" \
-    -hostprefix "${QT_HOST_DIR}" \
-    -extprefix "${QT_AARCH64_DIR}" \
-    -opensource -confirm-license -release \
-    -nomake examples -nomake tests \
-    -platform linux-g++ \
-    -xplatform linux-aarch64-gnu-g++ \
-    -device-option CROSS_COMPILE=aarch64-linux-gnu- \
-    -sysroot / \
-    -skip qtwebengine \
-    -skip qt3d \
-    -skip qtquick3d \
-    -skip qtmultimedia \
-    -skip qtwayland \
-    -skip qtlocation \
-    -skip qtsensors \
-    -skip qtconnectivity \
-    -skip qtremoteobjects \
-    -skip qtwebchannel \
-    -skip qtwebsockets \
-    -skip qtscxml \
-    -skip qtdoc \
-    -skip qttools \
-    -skip qtdeclarative \
-    -skip qtgamepad \
-    -skip qtlottie \
-    -skip qtspeech \
-    -skip qtvirtualkeyboard \
-    -skip qtcharts \
-    -skip qtactiveqt \
-    -skip qtmacextras \
-    -skip qtx11extras \
-    -skip qtwinextras \
-    -no-openssl \
-    -no-dbus \
-    -no-sql-sqlite \
-    -no-feature-xcb \
-    -no-feature-xlib \
-    -no-feature-xkbcommon \
-    -no-feature-vulkan \
-    -no-opengl \
-    -no-eglfs \
-    -linuxfb
+build_module_from_qt_tree() {
+  local module_name="$1"
+  local module_src_dir="${QT_SRC_DIR}/${module_name}"
+  local stamp_file="${QT_AARCH64_DIR}/lib/.${module_name}.installed"
+  if [[ -f "${stamp_file}" ]]; then
+    echo "${module_name} already installed; skip"
+    return 0
+  fi
+  if [[ ! -d "${module_src_dir}" ]]; then
+    echo "Missing module source directory in qt tree: ${module_src_dir}" >&2
+    exit 3
+  fi
+
+  mkdir -p "${module_src_dir}/build-aarch64"
+  cd "${module_src_dir}/build-aarch64"
+  export PATH="${QT_HOST_DIR}/bin:${PATH}"
+  export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+  export PKG_CONFIG_SYSROOT_DIR="/"
+  "${QT_HOST_DIR}/bin/qmake" -spec linux-aarch64-gnu-g++ \
+    QMAKE_CC=aarch64-linux-gnu-gcc \
+    QMAKE_CXX=aarch64-linux-gnu-g++ \
+    QMAKE_LINK=aarch64-linux-gnu-g++ \
+    QMAKE_STRIP=aarch64-linux-gnu-strip \
+    QMAKE_CFLAGS+="--sysroot=/" \
+    QMAKE_CXXFLAGS+="--sysroot=/" \
+    QMAKE_LFLAGS+="--sysroot=/" \
+    "${module_src_dir}/${module_name}.pro"
   make -j"$(nproc)"
   make install
-  cd ..
-fi
+  mkdir -p "$(dirname "${stamp_file}")"
+  touch "${stamp_file}"
+  cd "${QT_SRC_DIR}"
+}
+
+build_qtmqtt_from_github() {
+  local stamp_file="${QT_AARCH64_DIR}/lib/.qtmqtt.installed"
+  if [[ -f "${stamp_file}" ]]; then
+    echo "qtmqtt already installed; skip"
+    return 0
+  fi
+
+  mkdir -p "${QTMQTT_SRC_DIR}/build-aarch64"
+  cd "${QTMQTT_SRC_DIR}/build-aarch64"
+  export PATH="${QT_HOST_DIR}/bin:${PATH}"
+  export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
+  export PKG_CONFIG_SYSROOT_DIR="/"
+  "${QT_HOST_DIR}/bin/qmake" -spec linux-aarch64-gnu-g++ \
+    QMAKE_CC=aarch64-linux-gnu-gcc \
+    QMAKE_CXX=aarch64-linux-gnu-g++ \
+    QMAKE_LINK=aarch64-linux-gnu-g++ \
+    QMAKE_STRIP=aarch64-linux-gnu-strip \
+    QMAKE_CFLAGS+="--sysroot=/" \
+    QMAKE_CXXFLAGS+="--sysroot=/" \
+    QMAKE_LFLAGS+="--sysroot=/" \
+    "${QTMQTT_SRC_DIR}/src/mqtt/qtmqtt.pro"
+  make -j"$(nproc)"
+  make install
+  touch "${stamp_file}"
+}
+
+prepare_system_host_qt
+build_qtbase_stack
+build_module_from_qt_tree qtsvg
+build_module_from_qt_tree qtserialbus
+build_qtmqtt_from_github
+
+echo "Built Qt aarch64 SDK with modules: qtbase, qtserialport, qttranslations, qtsvg, qtserialbus, qtmqtt"

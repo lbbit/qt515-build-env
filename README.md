@@ -40,20 +40,23 @@
 - Qt Widgets
 - Qt Network
 - Qt Test
+- Qt Concurrent
 - Qt SerialPort
+- Qt SerialBus
+- Qt Svg
 - Qt Translations
+- Qt MQTT
 
 ### 关于 MQTT
 
 MQTT 在 Qt 5.15 体系里通常来自 **`qtmqtt` 模块**，它不是 `qtbase` 自带的一部分。
 
-因此当前仓库先优先打通：
+当前仓库已采用增量方式接入：
 
-- Qt 5.15 aarch64 基础交叉编译环境
-- `qtserialport`
-- `qttranslations`
+- 基础 Qt 5.15.2 aarch64 交叉环境来自 `qt-everywhere-src-5.15.2`
+- `qtmqtt` 通过 GitHub 下载 `qt/qtmqtt` 对应 `v5.15.2` 源码后单独编译安装
 
-等基础环境稳定后，再继续把 `qtmqtt` 加进容器。
+这样可以在不放大基础环境排障范围的前提下，为业务项目补齐 `QtMqtt`。
 
 
 ```text

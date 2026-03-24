@@ -66,6 +66,7 @@ RUN apt-get update && apt-get install -y \
   && rm -rf /var/lib/apt/lists/*
 
 COPY qt-everywhere-src-5.15.2.tar.xz /opt/src/qt-everywhere-src-5.15.2.tar.xz
+COPY qtmqtt-v5.15.2.tar.gz /opt/src/qtmqtt-v5.15.2.tar.gz
 COPY scripts/build_qt_all.sh /usr/local/bin/build_qt_all.sh
 RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /usr/local/bin/build_qt_all.sh \
@@ -75,6 +76,9 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /opt/Qt5.15/5.15.2/gcc_64/bin/qmake -v \
     && test -d /opt/Qt5.15/5.15.2/aarch64/include \
     && test -d /opt/Qt5.15/5.15.2/aarch64/lib \
+    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Svg.so \
+    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5SerialBus.so \
+    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Mqtt.so \
     && (test -d /opt/Qt5.15/5.15.2/gcc_64/mkspecs/linux-aarch64-gnu-g++ || test -d /usr/lib/qt5/mkspecs/linux-aarch64-gnu-g++) \
     || { \
       echo '===== build_qt_all.sh failed or installed cross SDK missing; dumping partial logs if present ====='; \
