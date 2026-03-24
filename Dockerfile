@@ -13,7 +13,8 @@ RUN rm -rf /var/lib/apt/lists/* \
   && apt-get update -o Acquire::Retries=5 \
   && apt-get install -y --no-install-recommends --fix-missing -o Acquire::Retries=5 curl ca-certificates \
   && curl -fsSL https://chsrc.run/posix | bash -s -- -d /usr/local/bin \
-  && chsrc set ubuntu \
+  && (chsrc set ubuntu || true) \
+  && sed -i 's|http://archive.ubuntu.com/ubuntu|https://mirrors.ustc.edu.cn/ubuntu|g; s|http://security.ubuntu.com/ubuntu|https://mirrors.ustc.edu.cn/ubuntu|g' /etc/apt/sources.list \
   && rm -rf /var/lib/apt/lists/* \
   && apt-get clean \
   && apt-get update -o Acquire::Retries=5 \
