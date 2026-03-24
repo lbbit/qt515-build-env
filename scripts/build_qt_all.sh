@@ -161,6 +161,7 @@ build_qtmqtt_from_github() {
   export PATH="${QT_HOST_DIR}/bin:${PATH}"
   export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
   export PKG_CONFIG_SYSROOT_DIR="/"
+  echo "Building qtmqtt from ${QTMQTT_SRC_DIR}/qtmqtt.pro"
   "${QT_HOST_DIR}/bin/qmake" -spec linux-aarch64-gnu-g++ \
     QMAKE_CC=aarch64-linux-gnu-gcc \
     QMAKE_CXX=aarch64-linux-gnu-g++ \
@@ -169,7 +170,8 @@ build_qtmqtt_from_github() {
     QMAKE_CFLAGS+="--sysroot=/" \
     QMAKE_CXXFLAGS+="--sysroot=/" \
     QMAKE_LFLAGS+="--sysroot=/" \
-    "${QTMQTT_SRC_DIR}/src/mqtt/qtmqtt.pro"
+    CONFIG+="release" \
+    "${QTMQTT_SRC_DIR}/qtmqtt.pro"
   make -j"$(nproc)"
   make install
   touch "${stamp_file}"
