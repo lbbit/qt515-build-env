@@ -46,6 +46,7 @@
 - Qt Svg
 - Qt Translations
 - Qt MQTT
+- 当前采用 `.so*` 产物验收，兼容 Qt 安装中常见的 SONAME / 软链接布局差异
 
 ### 关于 MQTT
 

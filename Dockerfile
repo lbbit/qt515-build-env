@@ -76,9 +76,9 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && /opt/Qt5.15/5.15.2/gcc_64/bin/qmake -v \
     && test -d /opt/Qt5.15/5.15.2/aarch64/include \
     && test -d /opt/Qt5.15/5.15.2/aarch64/lib \
-    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Svg.so \
-    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5SerialBus.so \
-    && test -f /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Mqtt.so \
+    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Svg.so* \
+    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5SerialBus.so* \
+    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Mqtt.so* \
     && (test -d /opt/Qt5.15/5.15.2/gcc_64/mkspecs/linux-aarch64-gnu-g++ || test -d /usr/lib/qt5/mkspecs/linux-aarch64-gnu-g++) \
     || { \
       echo '===== build_qt_all.sh failed or installed cross SDK missing; dumping partial logs if present ====='; \
