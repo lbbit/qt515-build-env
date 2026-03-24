@@ -11,6 +11,12 @@ ENV QT_ARMV7_DIR=${QT_ROOT}/armv7
 RUN rm -rf /var/lib/apt/lists/* \
   && apt-get clean \
   && apt-get update -o Acquire::Retries=5 \
+  && apt-get install -y --no-install-recommends --fix-missing -o Acquire::Retries=5 curl ca-certificates \
+  && curl -fsSL https://chsrc.run/posix | bash -s -- -d /usr/local/bin \
+  && chsrc set ubuntu \
+  && rm -rf /var/lib/apt/lists/* \
+  && apt-get clean \
+  && apt-get update -o Acquire::Retries=5 \
   && apt-get install -y --fix-missing -o Acquire::Retries=5 \
     build-essential \
     python3 \
