@@ -78,10 +78,8 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
     && test -d /opt/Qt5.15/5.15.2/aarch64/include \
     && test -d /opt/Qt5.15/5.15.2/aarch64/lib \
     && echo '===== installed Qt libraries =====' \
-    && find /opt/Qt5.15/5.15.2/aarch64/lib -maxdepth 1 -name 'libQt5*' | sort \
-    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Svg.so* \
-    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5SerialBus.so* \
-    && ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5Mqtt.so* \
+    && find /opt/Qt5.15/5.15.2/aarch64/lib -maxdepth 1 -name 'libQt5*' | sort | tail -n 120 \
+    && sh -ec 'for mod in Svg SerialBus Mqtt; do if ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5${mod}.so* >/dev/null 2>&1; then echo "FOUND libQt5${mod}"; ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5${mod}.so*; else echo "MISSING libQt5${mod}" >&2; exit 1; fi; done' \
     && (test -d /opt/Qt5.15/5.15.2/gcc_64/mkspecs/linux-aarch64-gnu-g++ || test -d /usr/lib/qt5/mkspecs/linux-aarch64-gnu-g++) \
     || { \
       echo '===== build_qt_all.sh failed or installed cross SDK missing; dumping partial logs if present ====='; \
@@ -96,7 +94,8 @@ RUN chmod +x /usr/local/bin/build_qt_all.sh \
       fi; \
       find /opt/src/qt-everywhere-src-5.15.2/build-aarch64/config.tests -maxdepth 4 -type f \( -name Makefile -o -name '*.log' -o -name '*.txt' -o -name '*.out' -o -name '*.err' \) -print -exec sh -c 'echo "===== {} ====="; sed -n "1,220p" "{}"' \; 2>/dev/null || true; \
       echo '===== installed Qt libraries (failure path) ====='; \
-      find /opt/Qt5.15/5.15.2/aarch64/lib -maxdepth 1 -name 'libQt5*' | sort || true; \
+      find /opt/Qt5.15/5.15.2/aarch64/lib -maxdepth 1 -name 'libQt5*' | sort | tail -n 120 || true; \
+      for mod in Svg SerialBus Mqtt; do if ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5${mod}.so* >/dev/null 2>&1; then echo "FOUND libQt5${mod} (failure path)"; ls /opt/Qt5.15/5.15.2/aarch64/lib/libQt5${mod}.so* || true; else echo "MISSING libQt5${mod} (failure path)"; fi; done; \
       find /opt/Qt5.15 -maxdepth 6 -type f | sort | head -n 400 || true; \
       exit 1; \
     }
