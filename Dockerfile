@@ -8,7 +8,9 @@ ENV QT_HOST_DIR=${QT_ROOT}/gcc_64
 ENV QT_AARCH64_DIR=${QT_ROOT}/aarch64
 ENV QT_ARMV7_DIR=${QT_ROOT}/armv7
 
-RUN apt-get update -o Acquire::Retries=5 \
+RUN rm -rf /var/lib/apt/lists/* \
+  && apt-get clean \
+  && apt-get update -o Acquire::Retries=5 \
   && apt-get install -y --fix-missing -o Acquire::Retries=5 \
     build-essential \
     python3 \
