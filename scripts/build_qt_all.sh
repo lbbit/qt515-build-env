@@ -30,6 +30,9 @@ fi
 if [[ ! -d "${QTMQTT_SRC_DIR}" ]]; then
   tar -xf "${QTMQTT_ARCHIVE}"
 fi
+if [[ ! -d "${QT_SRC_DIR}/qtmqtt" ]]; then
+  cp -a "${QTMQTT_SRC_DIR}" "${QT_SRC_DIR}/qtmqtt"
+fi
 
 python3 - <<'PY'
 from pathlib import Path
@@ -128,11 +131,21 @@ build_module_from_qt_tree() {
     exit 3
   fi
 
+  local module_pro="${module_src_dir}/${module_name}.pro"
+  if [[ ! -f "${module_pro}" ]]; then
+    module_pro="${module_src_dir}/src/${module_name}/${module_name}.pro"
+  fi
+  if [[ ! -f "${module_pro}" ]]; then
+    echo "Missing module project file for ${module_name}" >&2
+    exit 3
+  fi
+
   mkdir -p "${module_src_dir}/build-aarch64"
   cd "${module_src_dir}/build-aarch64"
   export PATH="${QT_HOST_DIR}/bin:${PATH}"
   export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
   export PKG_CONFIG_SYSROOT_DIR="/"
+  echo "Building ${module_name} from ${module_pro}"
   "${QT_HOST_DIR}/bin/qmake" -spec linux-aarch64-gnu-g++ \
     QMAKE_CC=aarch64-linux-gnu-gcc \
     QMAKE_CXX=aarch64-linux-gnu-g++ \
@@ -141,7 +154,7 @@ build_module_from_qt_tree() {
     QMAKE_CFLAGS+="--sysroot=/" \
     QMAKE_CXXFLAGS+="--sysroot=/" \
     QMAKE_LFLAGS+="--sysroot=/" \
-    "${module_src_dir}/${module_name}.pro"
+    "${module_pro}"
   make -j"$(nproc)"
   make install
   mkdir -p "$(dirname "${stamp_file}")"
@@ -149,38 +162,10 @@ build_module_from_qt_tree() {
   cd "${QT_SRC_DIR}"
 }
 
-build_qtmqtt_from_github() {
-  local stamp_file="${QT_AARCH64_DIR}/lib/.qtmqtt.installed"
-  if [[ -f "${stamp_file}" ]]; then
-    echo "qtmqtt already installed; skip"
-    return 0
-  fi
-
-  mkdir -p "${QTMQTT_SRC_DIR}/build-aarch64"
-  cd "${QTMQTT_SRC_DIR}/build-aarch64"
-  export PATH="${QT_HOST_DIR}/bin:${PATH}"
-  export PKG_CONFIG_LIBDIR="/usr/lib/aarch64-linux-gnu/pkgconfig:/usr/share/pkgconfig"
-  export PKG_CONFIG_SYSROOT_DIR="/"
-  echo "Building qtmqtt from ${QTMQTT_SRC_DIR}/qtmqtt.pro"
-  "${QT_HOST_DIR}/bin/qmake" -spec linux-aarch64-gnu-g++ \
-    QMAKE_CC=aarch64-linux-gnu-gcc \
-    QMAKE_CXX=aarch64-linux-gnu-g++ \
-    QMAKE_LINK=aarch64-linux-gnu-g++ \
-    QMAKE_STRIP=aarch64-linux-gnu-strip \
-    QMAKE_CFLAGS+="--sysroot=/" \
-    QMAKE_CXXFLAGS+="--sysroot=/" \
-    QMAKE_LFLAGS+="--sysroot=/" \
-    CONFIG+="release" \
-    "${QTMQTT_SRC_DIR}/qtmqtt.pro"
-  make -j"$(nproc)"
-  make install
-  touch "${stamp_file}"
-}
-
 prepare_system_host_qt
 build_qtbase_stack
 build_module_from_qt_tree qtsvg
 build_module_from_qt_tree qtserialbus
-build_qtmqtt_from_github
+build_module_from_qt_tree qtmqtt
 
 echo "Built Qt aarch64 SDK with modules: qtbase, qtserialport, qttranslations, qtsvg, qtserialbus, qtmqtt"
